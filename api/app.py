@@ -1,5 +1,5 @@
 import os
-from flask import Flask, abort, jsonify, request
+from flask import Flask, abort, jsonify, make_response, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import func
 
@@ -50,12 +50,15 @@ def generic_error(e):
 def get_feed():
     """Get Data Feed"""
     feed = [feed.serialize for feed in Feed.query.all()]
-    return jsonify(feed)
+    return _add_cors_to_response(jsonify(feed))
 
 
 @app.route("/feed/create", methods=["GET", "POST"])
 def post_feed_item():
     """Create new Feed item"""
+    if request.method == "OPTIONS":
+        return _build_cors_preflight_response()
+    
     if request.method == "POST":
         content = request.form["content"]
         event_date = request.form["event_date"]
@@ -80,6 +83,18 @@ def post_feed_item():
 
     return jsonify(feed_item.serialize)
 
+
+def _build_cors_preflight_response():
+    response = make_response()
+    response.headers.add("Access-Control-Allow-Origin", "http://localhost:5173")
+    response.headers.add("Access-Control-Allow-Headers", ["Content-Type"])
+    response.headers.add("Access-Control-Allow-Methods", ["GET"])
+    return response
+
+
+def _add_cors_to_response(response):
+    response.headers.add("Access-Control-Allow-Origin", "http://localhost:5173")
+    return response
 
 if __name__ == "__main__":
     app.run(host="localhost", port=5000)
