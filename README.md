@@ -18,6 +18,28 @@ Once inside the Flask shell run the following to create the Feed database and se
 >>> seed_data(app, db)
 ```
 
+# Installing and running the api
+
+This project was created using a conda virtual environment, but can run using other virtual env packages. To create a new conda environment run at the project root:
+
+```
+conda env create --name data-feed-env --file=environments.yml
+conda activate
+```
+
+If you are using a different virtualenv package, you can use pip to install the packages into your new environment:
+
+```
+pip install -r requirements.txt
+```
+
+Once your virtual environment is setup, you can run the flask app with the following:
+
+```
+cd api
+python -m flask run
+```
+
 # Installing and running the client
 
 You can use `yarn` or `npm` to install and run this project.
