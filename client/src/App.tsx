@@ -1,6 +1,9 @@
 import "./App.css";
 import { useEffect, useState } from "react";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { FeedList } from "./FeedList";
+import { CreateFeedItemForm } from "./CreateFeedItemForm";
 
 export interface FeedItem {
   id: number;
@@ -27,7 +30,16 @@ function App() {
     getFeedData();
   }, []);
 
-  return <>{feedData && feedData.length > 0 && <FeedList feed={feedData} />}</>;
+  const createSuccess = (feedItem: FeedItem) => {
+    setFeedData((prev) => (prev ? [...prev, feedItem] : [feedItem]));
+  };
+
+  return (
+    <LocalizationProvider dateAdapter={AdapterDateFns}>
+      <CreateFeedItemForm onSuccess={createSuccess} />
+      {feedData && feedData.length > 0 && <FeedList feed={feedData} />}
+    </LocalizationProvider>
+  );
 }
 
 export default App;
