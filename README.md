@@ -24,7 +24,7 @@ This project was created using a conda virtual environment, but can run using ot
 
 ```
 cd api
-conda env create --name data-feed-env --file=environments.yml
+conda env create --name data-feed-env --file=environment.yml
 conda activate
 ```
 
