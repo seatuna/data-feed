@@ -5,6 +5,7 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { FeedList } from "./FeedList";
 import { CreateFeedItemForm } from "./CreateFeedItemForm";
 import { Button, Dialog } from "@mui/material";
+import { FollowersChart } from "./FollowersChart";
 
 export interface FeedItem {
   id: number;
@@ -60,7 +61,10 @@ function App() {
         Create
       </Button>
       {feedData && feedData.length > 0 && (
-        <FeedList feed={feedData} refreshData={refreshData} />
+        <>
+          <FeedList feed={feedData} refreshData={refreshData} />
+          <FollowersChart feed={feedData} />
+        </>
       )}
     </LocalizationProvider>
   );

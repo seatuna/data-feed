@@ -63,6 +63,9 @@ export const FeedList = ({ feed, refreshData }: FeedListProps) => {
             <Typography variant="body2" color="text.secondary" marginBottom={2}>
               Source: {feedItem.source}
             </Typography>
+            <Typography variant="body2" color="text.secondary" marginBottom={2}>
+              Followers: {feedItem.followers}, Following: {feedItem.following}
+            </Typography>
             <Chip
               label={feedItem.topic}
               variant="outlined"
