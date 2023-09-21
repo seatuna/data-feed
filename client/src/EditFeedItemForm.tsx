@@ -4,25 +4,18 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { FeedItem } from "./App";
 import { format } from "date-fns";
 
-interface CreateFeedItemFormProps {
+interface EditFeedItemFormProps {
+  feedItem: FeedItem;
+  onClose: () => void;
   onSuccess: () => void;
 }
 
-type CreateFeedItemFormValues = Omit<FeedItem, "id">;
-
-const defaultValues: Partial<CreateFeedItemFormValues> = {
-  content: "",
-  event_date: "",
-  followers: undefined,
-  following: undefined,
-  source: "",
-  topic: "",
-};
-
-export const CreateFeedItemForm = ({ onSuccess }: CreateFeedItemFormProps) => {
-  const [formValues, setFormValues] = useState(defaultValues);
-  const [formErrors] =
-    useState<Partial<CreateFeedItemFormValues>>(defaultValues);
+export const EditFeedItemForm = ({
+  feedItem,
+  onClose,
+  onSuccess,
+}: EditFeedItemFormProps) => {
+  const [formValues, setFormValues] = useState(feedItem);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const formField = e.target.name;
@@ -43,7 +36,7 @@ export const CreateFeedItemForm = ({ onSuccess }: CreateFeedItemFormProps) => {
   const handleSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
 
-    await fetch("http://localhost:5000/feed/create", {
+    await fetch(`http://localhost:5000/feed/${feedItem.id}/edit`, {
       method: "post",
       mode: "cors",
       body: JSON.stringify(formValues),
@@ -61,13 +54,14 @@ export const CreateFeedItemForm = ({ onSuccess }: CreateFeedItemFormProps) => {
         "& .MuiTextField-root": { m: 1, width: "25ch" },
       }}
     >
-      <form onSubmit={handleSubmit} id="create-feed-item-form">
+      <form onSubmit={handleSubmit} id="edit-feed-item-form">
         <DatePicker
+          // defaultValue={parseISO(feedItem.event_date)}
           label="Event Date"
           onChange={(date: Date | null) => date && handleDateChange(date)}
         />
         <TextField
-          error={Boolean(formErrors.followers)}
+          defaultValue={feedItem.followers}
           id="followers-input"
           label="Number of Followers"
           name="followers"
@@ -76,7 +70,7 @@ export const CreateFeedItemForm = ({ onSuccess }: CreateFeedItemFormProps) => {
           type="number"
         />
         <TextField
-          error={Boolean(formErrors.following)}
+          defaultValue={feedItem.following}
           id="following-input"
           label="Number of People Following"
           name="following"
@@ -85,7 +79,7 @@ export const CreateFeedItemForm = ({ onSuccess }: CreateFeedItemFormProps) => {
           type="number"
         />
         <TextField
-          error={Boolean(formErrors.source)}
+          defaultValue={feedItem.source}
           id="event-date-input"
           label="Source"
           name="source"
@@ -94,7 +88,7 @@ export const CreateFeedItemForm = ({ onSuccess }: CreateFeedItemFormProps) => {
           type="text"
         />
         <TextField
-          error={Boolean(formErrors.topic)}
+          defaultValue={feedItem.topic}
           id="event-date-input"
           label="Topic"
           name="topic"
@@ -103,10 +97,11 @@ export const CreateFeedItemForm = ({ onSuccess }: CreateFeedItemFormProps) => {
           type="text"
         />
         <TextField
-          error={Boolean(formErrors.content)}
+          defaultValue={feedItem.content}
           id="content-input"
           label="Content"
           multiline
+          rows={4}
           name="content"
           onChange={handleChange}
           required
@@ -114,11 +109,14 @@ export const CreateFeedItemForm = ({ onSuccess }: CreateFeedItemFormProps) => {
         />
         <Button
           variant="contained"
-          form="create-feed-item-form"
+          form="edit-feed-item-form"
           type="submit"
           sx={{ m: 1 }}
         >
-          Submit
+          Update
+        </Button>
+        <Button variant="contained" onClick={onClose} sx={{ m: 1 }}>
+          Close
         </Button>
       </form>
     </Box>

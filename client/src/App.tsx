@@ -4,6 +4,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { FeedList } from "./FeedList";
 import { CreateFeedItemForm } from "./CreateFeedItemForm";
+import { Button, Dialog } from "@mui/material";
 
 export interface FeedItem {
   id: number;
@@ -17,27 +18,50 @@ export interface FeedItem {
 
 function App() {
   const [feedData, setFeedData] = useState<FeedItem[] | undefined>();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const getFeedData = async () => {
+    const feed = await fetch("http://localhost:5000/feed", {
+      method: "GET",
+    });
+    const feedJson = await feed.json();
+    setFeedData(feedJson);
+  };
 
   useEffect(() => {
-    const getFeedData = async () => {
-      const feed = await fetch("http://localhost:5000/feed", {
-        method: "GET",
-      });
-      const feedJson = await feed.json();
-      console.log(feedJson);
-      setFeedData(feedJson);
-    };
     getFeedData();
   }, []);
 
-  const createSuccess = (feedItem: FeedItem) => {
-    setFeedData((prev) => (prev ? [...prev, feedItem] : [feedItem]));
+  const refreshData = () => {
+    getFeedData();
   };
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <CreateFeedItemForm onSuccess={createSuccess} />
-      {feedData && feedData.length > 0 && <FeedList feed={feedData} />}
+      <Dialog
+        open={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+      >
+        <CreateFeedItemForm
+          onSuccess={() => {
+            refreshData();
+            setIsCreateModalOpen(false);
+          }}
+        />
+      </Dialog>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => {
+          setIsCreateModalOpen(true);
+        }}
+        sx={{ marginBottom: "15px" }}
+      >
+        Create
+      </Button>
+      {feedData && feedData.length > 0 && (
+        <FeedList feed={feedData} refreshData={refreshData} />
+      )}
     </LocalizationProvider>
   );
 }
