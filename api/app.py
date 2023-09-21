@@ -1,13 +1,18 @@
+from datetime import datetime
 import os
 from flask import Flask, abort, jsonify, make_response, request
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql import func
+from flask_cors import CORS, cross_origin
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
+CORS(app)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(basedir, "feed.db")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config['CORS_HEADERS'] = 'Content-Type'
 db = SQLAlchemy(app)
 
 
@@ -47,25 +52,31 @@ def generic_error(e):
 
 
 @app.route("/feed", methods=["GET"])
+@cross_origin(origin='localhost',headers=['Content-Type','Authorization'])
 def get_feed():
     """Get Data Feed"""
     feed = [feed.serialize for feed in Feed.query.all()]
-    return _add_cors_to_response(jsonify(feed))
+    return jsonify(feed)
 
 
-@app.route("/feed/create", methods=["GET", "POST"])
+@app.route("/feed/create", methods=["GET", "POST", "OPTIONS"])
+@cross_origin(origin='localhost',headers=['Content-Type'])
 def post_feed_item():
     """Create new Feed item"""
-    if request.method == "OPTIONS":
-        return _build_cors_preflight_response()
+    print(request.method)
+    print(request.get_json())
     
     if request.method == "POST":
-        content = request.form["content"]
-        event_date = request.form["event_date"]
-        followers = int(request.form["followers"])
-        following = int(request.form["following"])
-        source = request.form["source"]
-        topic = request.form["topic"]
+        form_data = request.get_json()
+        content = form_data["content"]
+        event_date = datetime.strptime(form_data["event_date"], '%Y-%m-%d %H:%M')
+        followers = int(form_data["followers"])
+        following = int(form_data["following"])
+        source = form_data["source"]
+        topic = form_data["topic"]
+        
+        print('event_date', type(event_date))
+        print('event_date', event_date)
 
         try:
             feed_item = Feed(
@@ -76,25 +87,16 @@ def post_feed_item():
                 source=source,
                 topic=topic,
             )
+            print(feed_item)
             db.session.add(feed_item)
             db.session.commit()
+            return jsonify(feed_item.serialize)
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            print(error)
         except:
             abort(500, description="Failed to create new feed item.")
 
-    return jsonify(feed_item.serialize)
-
-
-def _build_cors_preflight_response():
-    response = make_response()
-    response.headers.add("Access-Control-Allow-Origin", "http://localhost:5173")
-    response.headers.add("Access-Control-Allow-Headers", ["Content-Type"])
-    response.headers.add("Access-Control-Allow-Methods", ["GET"])
-    return response
-
-
-def _add_cors_to_response(response):
-    response.headers.add("Access-Control-Allow-Origin", "http://localhost:5173")
-    return response
 
 if __name__ == "__main__":
     app.run(host="localhost", port=5000)

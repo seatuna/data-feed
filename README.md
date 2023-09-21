@@ -20,9 +20,10 @@ Once inside the Flask shell run the following to create the Feed database and se
 
 # Installing and running the api
 
-This project was created using a conda virtual environment, but can run using other virtual env packages. To create a new conda environment run at the project root:
+This project was created using a conda virtual environment, but can run using other virtual env packages. To create a new conda environment run in the api folder:
 
 ```
+cd api
 conda env create --name data-feed-env --file=environments.yml
 conda activate
 ```
@@ -30,6 +31,7 @@ conda activate
 If you are using a different virtualenv package, you can use pip to install the packages into your new environment:
 
 ```
+cd api
 pip install -r requirements.txt
 ```
 
@@ -49,19 +51,21 @@ You can use `yarn` or `npm` to install and run this project.
 This project was created on yarn v3.6.0. Running `yarn` will install the dependencies. To run the app in dev mode, run `yarn dev`.
 
 ```
+cd client
 yarn
 yarn dev
 ```
 
-Once the project is running, you can navigate to `localhost:5173` to view the project.
+Once the project is running, you can navigate to `http://localhost:5173` to view the project.
 
 ## npm
 
 This project was created on yarn v3.6.0, but will run using npm as well. The version I currently have is v9.6.5. Running `npm install` will install the dependencies. To run the app in dev mode, run `npm run dev`.
 
 ```
+cd client
 npm install
 npm run dev
 ```
 
-Once the project is running, you can navigate to `localhost:5173` to view the project.
+Once the project is running, you can navigate to `http://localhost:5173` to view the project.
