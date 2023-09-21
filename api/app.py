@@ -9,7 +9,7 @@ from flask_cors import CORS, cross_origin
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=['localhost'])
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(basedir, "feed.db")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config['CORS_HEADERS'] = 'Content-Type'
@@ -52,7 +52,7 @@ def generic_error(e):
 
 
 @app.route("/feed", methods=["GET"])
-@cross_origin(origin='localhost',headers=['Content-Type','Authorization'])
+@cross_origin()
 def get_feed():
     """Get Data Feed"""
     feed = [feed.serialize for feed in Feed.query.all()]
@@ -60,12 +60,9 @@ def get_feed():
 
 
 @app.route("/feed/create", methods=["GET", "POST", "OPTIONS"])
-@cross_origin(origin='localhost',headers=['Content-Type'])
+@cross_origin()
 def post_feed_item():
-    """Create new Feed item"""
-    print(request.method)
-    print(request.get_json())
-    
+    """Create new Feed item"""    
     if request.method == "POST":
         form_data = request.get_json()
         content = form_data["content"]
@@ -74,9 +71,6 @@ def post_feed_item():
         following = int(form_data["following"])
         source = form_data["source"]
         topic = form_data["topic"]
-        
-        print('event_date', type(event_date))
-        print('event_date', event_date)
 
         try:
             feed_item = Feed(
@@ -87,16 +81,54 @@ def post_feed_item():
                 source=source,
                 topic=topic,
             )
-            print(feed_item)
             db.session.add(feed_item)
             db.session.commit()
             return jsonify(feed_item.serialize)
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            print(error)
         except:
             abort(500, description="Failed to create new feed item.")
 
+
+@app.route("/feed/<string:id>/edit", methods=["GET", "POST", "OPTIONS"])
+@cross_origin()
+def update_feed_item(id):
+    """Edit Feed item"""
+    if request.method == "POST":
+        feed_item = Feed.query.get(id)
+        if not feed_item:
+            abort(404, description="Could not find feed item record")
+
+        try:
+            form_data = request.get_json()
+            feed_item.content = form_data["content"]
+            feed_item.event_date = datetime.strptime(form_data["event_date"], '%Y-%m-%d %H:%M')
+            feed_item.followers = int(form_data["followers"])
+            feed_item.following = int(form_data["following"])
+            feed_item.source = form_data["source"]
+            feed_item.topic = form_data["topic"]
+        
+            print(feed_item)
+            db.session.commit()
+            return jsonify(feed_item.serialize)
+        except Exception as error:
+            print(error)
+            abort(500, description="Failed to create new feed item.")
+
+@app.route("/feed/<string:id>/delete", methods=["GET", "DELETE", "OPTIONS"])
+@cross_origin()
+def delete_feed_item(id):
+    """Delete Feed item"""    
+    if request.method == "DELETE":
+        feed_item = Feed.query.get(id)
+        if not feed_item:
+            abort(404, description="Could not find feed item record")
+
+        try:
+            db.session.delete(feed_item)
+            db.session.commit()
+            return jsonify(id)
+        except Exception as error:
+            print(error)
+            abort(500, description="Failed to create new feed item.")
 
 if __name__ == "__main__":
     app.run(host="localhost", port=5000)
